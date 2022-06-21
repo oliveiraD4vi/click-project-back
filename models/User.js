@@ -18,7 +18,7 @@ const User = db.define('users', {
     unique: true
   },
   matricula: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.STRING,
     allowNull: false,
     unique: true
   },
