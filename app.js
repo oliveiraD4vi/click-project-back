@@ -42,20 +42,13 @@ app.post('/register', async (req, res) => {
 
   data.password = await bcrypt.hash(data.password, 8);
 
-  const user = await User.findOne({
-    attributes: ['email'],
-    where: {
-      email: data.email
-    }
-  });
-
-  if (user === null) {
-    await User.create(dados);
+  try {
+    await User.create(data);
     return res.json({
       error: false,
       message: 'User successfully registered!'
     });
-  } else {
+  } catch (error) {
     return res.json({
       error: true,
       message: 'Error: User already exists'
