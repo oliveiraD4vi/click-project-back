@@ -13,7 +13,7 @@ const User = require('./models/User');
 
 app.get('/list', eAdmin, async (req, res) => {
   await User.findAll({
-    attributes: ['id', 'name', 'user'],
+    attributes: ['id', 'name', 'email', 'matricula'],
     order: [['id', "DESC"]]
   })
   .then((users) => {
@@ -31,13 +31,21 @@ app.get('/list', eAdmin, async (req, res) => {
 });
 
 app.post('/register', async (req, res) => {
-  const dados = req.body;
+  const data = req.body;
+
+  if (!data.name || !data.email || !data.matricula || !data.password) {
+    return res.json({
+      error: true,
+      message: 'Error: Incomplete request'
+    });
+  }
+
   dados.password = await bcrypt.hash(dados.password, 8);
 
   const user = await User.findOne({
-    attributes: ['user'],
+    attributes: ['email'],
     where: {
-      user: dados.user
+      email: dados.email
     }
   });
 
@@ -57,9 +65,9 @@ app.post('/register', async (req, res) => {
 
 app.post('/login', async (req, res) => {
   const user = await User.findOne({
-    attributes: ['id', 'name', 'user', 'password'],
+    attributes: ['id', 'name', 'email', 'matricula', 'password'],
     where: {
-      user: req.body.user
+      email: req.body.email
     }
   });
 
