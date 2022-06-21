@@ -40,12 +40,12 @@ app.post('/register', async (req, res) => {
     });
   }
 
-  dados.password = await bcrypt.hash(dados.password, 8);
+  data.password = await bcrypt.hash(data.password, 8);
 
   const user = await User.findOne({
     attributes: ['email'],
     where: {
-      email: dados.email
+      email: data.email
     }
   });
 
