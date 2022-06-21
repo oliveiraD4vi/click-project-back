@@ -6,7 +6,10 @@ require('dotenv/config');
 require('./models/db');
 
 const app = express();
+var cors = require('cors');
+
 app.use(express.json());
+app.use(cors());
 
 const { eAdmin } = require('./middlewares/auth');
 const User = require('./models/User');
@@ -34,7 +37,7 @@ app.post('/register', async (req, res) => {
   const data = req.body;
 
   if (!data.name || !data.email || !data.matricula || !data.password) {
-    return res.json({
+    return res.status(400).json({
       error: true,
       message: 'Error: Incomplete request'
     });
@@ -49,7 +52,7 @@ app.post('/register', async (req, res) => {
       message: 'User successfully registered!'
     });
   } catch (error) {
-    return res.json({
+    return res.status(400).json({
       error: true,
       message: 'Error: User already exists'
     });
