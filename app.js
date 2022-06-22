@@ -28,7 +28,7 @@ app.get('/list', eAdmin, async (req, res) => {
   }).catch(() => {
     return res.status(400).json({
       error: true,
-      message: "Error: User not found"
+      message: "error: user not found"
     });
   });
 });
@@ -39,7 +39,7 @@ app.post('/register', async (req, res) => {
   if (!data.name || !data.email || !data.matricula || !data.password) {
     return res.status(400).json({
       error: true,
-      message: 'Error: Incomplete request'
+      message: 'error: incomplete request'
     });
   }
 
@@ -49,12 +49,12 @@ app.post('/register', async (req, res) => {
     await User.create(data);
     return res.json({
       error: false,
-      message: 'User successfully registered!'
+      message: 'user successfully registered'
     });
   } catch (error) {
     return res.status(400).json({
       error: true,
-      message: 'Error: User already exists'
+      message: 'error: user already exists'
     });
   }
 });
@@ -63,21 +63,21 @@ app.post('/login', async (req, res) => {
   const user = await User.findOne({
     attributes: ['id', 'name', 'email', 'matricula', 'password'],
     where: {
-      email: req.body.email
+      matricula: req.body.matricula
     }
   });
 
   if(user === null){
     return res.status(400).json({
       error: true,
-      message: "Error: Inavlid user or password!"
+      message: "error: invalid user or password"
     });
   }
 
   if(!(await bcrypt.compare(req.body.password, user.password))){
     return res.status(400).json({
       error: true,
-      message: "Error: Inavlid user or password!"
+      message: "error: inavlid user or password"
     });
   }
 
@@ -87,8 +87,11 @@ app.post('/login', async (req, res) => {
 
   return res.json({
     error: false,
-    message: 'Logged successfully!',
-    token
+    message: 'user successfully logged',
+    authData: {
+      token,
+      role: 'ALUNO'
+    }
   });
 });
 
