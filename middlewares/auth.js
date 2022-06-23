@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { promisify } = require('util');
+
 require('dotenv/config');
 
 module.exports = {
@@ -9,7 +10,7 @@ module.exports = {
     if (!authHeader) {
       return res.status(400).json({
         error: true,
-        message: 'Error: Access denied'
+        message: 'error: access denied'
       });
     }
 
@@ -18,7 +19,7 @@ module.exports = {
     if(!token){
       return res.status(400).json({
         error: true,
-        message: 'Error: Access denied'
+        message: 'error: access denied'
       });
     }
 
@@ -29,7 +30,7 @@ module.exports = {
     } catch(err) {
       return res.status(400).json({
         error: true,
-        message: 'Error: Access denied'
+        message: 'error: access denied'
       });
     }
   }
