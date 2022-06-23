@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const db = require('./db');
+const db = require('../db');
 
 const Voting = db.define('voting', {
   id: {
@@ -10,7 +10,17 @@ const Voting = db.define('voting', {
   },
   current: {
     type: DataTypes.BOOLEAN,
+    defaultValue: true,
     allowNull: false
+  },
+  cancelled: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false
+  },
+  result: {
+    type: DataTypes.STRING,
+    allowNull: true
   }
 });
 

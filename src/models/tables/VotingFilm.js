@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const db = require('./db');
+const db = require('../db');
 
 const Voting = require('./Voting');
 
@@ -11,7 +11,7 @@ const VotingFilm = db.define('votingfilms', {
     primaryKey: true
   },
   film_code: {
-    type: DataTypes.BIGINT,
+    type: DataTypes.STRING,
     allowNull: false
   },
   voting_id: {

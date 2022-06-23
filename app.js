@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 require('dotenv/config');
-require('./models/db');
+require('./src/models/db');
 
 const app = express();
 var cors = require('cors');
@@ -11,11 +11,12 @@ var cors = require('cors');
 app.use(express.json());
 app.use(cors());
 
-const { eAdmin } = require('./middlewares/auth');
+const { eAdmin } = require('./src/middlewares/auth');
 
-const VotingFilm = require('./models/VotingFilm');
-const Voting = require('./models/Voting');
-const User = require('./models/User');
+const UserVoting = require('./src/models/tables/UserVoting');
+const VotingFilm = require('./src/models/tables/VotingFilm');
+const Voting = require('./src/models/tables/Voting');
+const User = require('./src/models/tables/User');
 
 app.post('/voting', eAdmin, async (req, res) => {
   const currentVoting = await Voting.findOne({
@@ -42,7 +43,7 @@ app.post('/voting', eAdmin, async (req, res) => {
   }
 
   try {
-    await Voting.create({ current: true })
+    await Voting.create()
     .then((voting) => {
       data.films.forEach((film) => {
         VotingFilm.create({
@@ -65,6 +66,8 @@ app.post('/voting', eAdmin, async (req, res) => {
 });
 
 app.put('/voting/end', eAdmin, async (req, res) => {
+  const { cancel } = req.query;
+
   const voting = await Voting.findOne({
     attributes: ['id', 'current'],
     where: {
@@ -79,6 +82,7 @@ app.put('/voting/end', eAdmin, async (req, res) => {
     });
   }
 
+  if (cancel) voting.cancelled = cancel;
   voting.current = false;
   await voting.save()
   .then(() => {
@@ -122,11 +126,35 @@ app.put('/voting/vote', eAdmin, async (req, res) => {
     });
   }
 
+  const user = await UserVoting.findOne({
+    attributes: ['id', 'user_id', 'voting_id', 'voted'],
+    where: {
+      user_id: data.user_id,
+      voting_id: voting.id
+    }
+  });
+
+  if (user) {
+    return res.status(400).json({
+      error: true,
+      message: 'error: user already voted'
+    });
+  }
+
   await film.increment('votes')
   .then(() => {
-    return res.json({
-      error: false,
-      message: 'vote registered'
+    UserVoting.create({ user_id: data.user_id, voting_id: voting.id })
+    .then(() => {
+      return res.json({
+        error: false,
+        message: 'vote registered'
+      });
+    })
+    .catch(() => {
+      return res.json({
+        error: true,
+        message: 'error: unknown error'
+      });
     });
   });
 });
@@ -163,7 +191,7 @@ app.get('/voting/films/list', eAdmin, async (req, res) => {
 
 app.get('/voting/list', eAdmin, async (req, res) => {
   await Voting.findAll({
-    attributes: ['id', 'current'],
+    attributes: ['id', 'current', 'cancelled', 'result'],
     order: [['id', "DESC"]]
   })
   .then((votings) => {
@@ -186,24 +214,22 @@ app.get('/voting/list', eAdmin, async (req, res) => {
   });
 });
 
-app.get('/voting/current', eAdmin, async (req, res) => {
+app.get('/voting/last', eAdmin, async (req, res) => {
   const voting = await Voting.findOne({
-    attributes: ['id', 'current'],
-    where: {
-      current: true
-    }
+    attributes: ['id', 'current', 'cancelled', 'result', 'createdAt'],
+    order: [['id', "DESC"]]
   });
   
   if (voting === null) {
     return res.status(400).json({
       error: true,
-      message: "error: voting not found"
+      message: "error: no voting found"
     });
   }
 
   return res.json({
     error: false,
-    current_voting_id: voting.id,
+    voting
   });
 });
 
@@ -263,6 +289,7 @@ app.post('/login', async (req, res) => {
     error: false,
     message: 'user successfully logged',
     authData: {
+      userId: user.id,
       token,
       role: 'ALUNO'
     }
