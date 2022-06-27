@@ -55,7 +55,7 @@ app.post('/voting', eAdmin, async (req, res) => {
     });
     return res.json({
       error: false,
-      message: 'Voto registrado'
+      message: 'Votação registrada'
     });
   } catch (error) {
     return res.status(400).json({
@@ -107,7 +107,7 @@ app.put('/voting/end', eAdmin, async (req, res) => {
 
   if (cancel) voting.cancelled = cancel;
   voting.current = false;
-  voting.result = winner.id;
+  voting.result = winner.film_code;
 
   await voting.save()
   .then(() => {
@@ -156,10 +156,34 @@ app.get('/voting/check', eAdmin, async (req, res) => {
     voted: false,
     message: 'Usuário pode votar'
   });
-}); 
+});
+
+app.get('/film', async (req, res) => {
+  const { filmId } = req.query;
+
+  const film = await VotingFilm.findOne({
+    attributes: ['id', 'film_code', 'voting_id', 'votes'],
+    where: {
+      id: filmId
+    }
+  });
+
+  if (!film) {
+    return res.status(400).json({
+      error: true,
+      message: 'Erro: Filme não encontrado'
+    });
+  }
+
+  return res.json({
+    error: false,
+    message: 'Filme encontrado',
+    film
+  });
+});
 
 app.put('/voting/vote', eAdmin, async (req, res) => {
-  const data = req.body;
+  const { userId, filmId } = req.query;
 
   const voting = await Voting.findOne({
     attributes: ['id', 'current'],
@@ -180,7 +204,7 @@ app.put('/voting/vote', eAdmin, async (req, res) => {
     order: [['id', "DESC"]],
     where: {
       voting_id: voting.id,
-      id: data.film_id
+      id: filmId
     }
   })
   
@@ -193,7 +217,7 @@ app.put('/voting/vote', eAdmin, async (req, res) => {
 
   await film.increment('votes')
   .then(() => {
-    UserVoting.create({ user_id: data.user_id, voting_id: voting.id })
+    UserVoting.create({ user_id: userId, voting_id: voting.id })
     .then(() => {
       return res.json({
         error: false,
@@ -209,7 +233,7 @@ app.put('/voting/vote', eAdmin, async (req, res) => {
   });
 });
 
-app.get('/voting/films/list', eAdmin, async (req, res) => {
+app.get('/voting/films/list', async (req, res) => {
   const { voting_id } = req.query;
 
   await VotingFilm.findAll({
@@ -239,7 +263,7 @@ app.get('/voting/films/list', eAdmin, async (req, res) => {
   });
 });
 
-app.get('/voting/list', eAdmin, async (req, res) => {
+app.get('/voting/list', async (req, res) => {
   await Voting.findAll({
     attributes: ['id', 'current', 'cancelled', 'result'],
     order: [['id', "DESC"]]
@@ -264,9 +288,9 @@ app.get('/voting/list', eAdmin, async (req, res) => {
   });
 });
 
-app.get('/voting/last', eAdmin, async (req, res) => {
+app.get('/voting/last', async (req, res) => {
   const voting = await Voting.findOne({
-    attributes: ['id', 'current', 'cancelled', 'result', 'createdAt'],
+    attributes: ['id', 'current', 'cancelled', 'result', 'createdAt', 'updatedAt'],
     order: [['id', "DESC"]]
   });
   
