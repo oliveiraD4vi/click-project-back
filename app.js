@@ -29,7 +29,7 @@ app.post('/voting', eAdmin, async (req, res) => {
   if (currentVoting) {
     return res.status(400).json({
       error: true,
-      message: 'error: you already have an on going voting'
+      message: 'Erro: Já existe uma votação em andamento'
     });
   }
 
@@ -38,7 +38,7 @@ app.post('/voting', eAdmin, async (req, res) => {
   if (!data.films) {
     return res.status(400).json({
       error: true,
-      message: 'error: incomplete request'
+      message: 'Erro: Requisição incompleta'
     });
   }
 
@@ -55,12 +55,12 @@ app.post('/voting', eAdmin, async (req, res) => {
     });
     return res.json({
       error: false,
-      message: 'voting registered'
+      message: 'Voto registrado'
     });
   } catch (error) {
     return res.status(400).json({
       error: true,
-      message: 'error: voting not registered'
+      message: 'Erro: Voto não registrado'
     });
   }
 });
@@ -78,20 +78,85 @@ app.put('/voting/end', eAdmin, async (req, res) => {
   if (!voting) {
     return res.status(400).json({
       error: true,
-      message: 'error: there is no on going voting'
+      message: 'Erro: Não existe uma votação ocorrendo'
     });
   }
 
+  let winner = null;
+
+  await VotingFilm.findAll({
+    attributes: ['id', 'film_code', 'voting_id', 'votes'],
+    order: [['id', "DESC"]],
+    where: {
+      voting_id: voting.id
+    }
+  })
+  .then((films) => {
+    winner = films[0];
+    
+    films.forEach((film) => {
+      if (film.votes > winner.votes)
+        winner = film;
+    });
+  }).catch(() => {
+    return res.status(400).json({
+      error: true,
+      message: "Erro: Lista não encontrada"
+    });
+  });
+
   if (cancel) voting.cancelled = cancel;
   voting.current = false;
+  voting.result = winner.id;
+
   await voting.save()
   .then(() => {
     return res.json({
       error: false,
-      message: 'voting ended'
+      message: 'Votação encerrada'
     });
   });
 });
+
+app.get('/voting/check', eAdmin, async (req, res) => {
+  const { userId } = req.query;
+
+  const voting = await Voting.findOne({
+    attributes: ['id', 'current'],
+    where: {
+      current: true
+    }
+  });
+
+  if (!voting) {
+    return res.status(400).json({
+      error: true,
+      message: 'Erro: Não há votações ocorrendo'
+    });
+  }
+
+  const user = await UserVoting.findOne({
+    attributes: ['id', 'user_id', 'voting_id', 'voted'],
+    where: {
+      user_id: userId,
+      voting_id: voting.id
+    }
+  });
+
+  if (user) {
+    return res.json({
+      error: false,
+      voted: true,
+      message: 'Esse usuário já efetuou a votação'
+    });
+  }
+
+  return res.json({
+    error: false,
+    voted: false,
+    message: 'Usuário pode votar'
+  });
+}); 
 
 app.put('/voting/vote', eAdmin, async (req, res) => {
   const data = req.body;
@@ -106,7 +171,7 @@ app.put('/voting/vote', eAdmin, async (req, res) => {
   if (!voting) {
     return res.status(400).json({
       error: true,
-      message: 'error: there is no on going voting'
+      message: 'Erro: Não há votações ocorrendo'
     });
   }
 
@@ -122,22 +187,7 @@ app.put('/voting/vote', eAdmin, async (req, res) => {
   if (!film) {
     return res.status(400).json({
       error: true,
-      message: 'error: no match'
-    });
-  }
-
-  const user = await UserVoting.findOne({
-    attributes: ['id', 'user_id', 'voting_id', 'voted'],
-    where: {
-      user_id: data.user_id,
-      voting_id: voting.id
-    }
-  });
-
-  if (user) {
-    return res.status(400).json({
-      error: true,
-      message: 'error: user already voted'
+      message: 'Erro: Filme não encontrado'
     });
   }
 
@@ -147,26 +197,26 @@ app.put('/voting/vote', eAdmin, async (req, res) => {
     .then(() => {
       return res.json({
         error: false,
-        message: 'vote registered'
+        message: 'Voto registrado'
       });
     })
     .catch(() => {
       return res.json({
         error: true,
-        message: 'error: unknown error'
+        message: 'Erro: Erro deseconhecido'
       });
     });
   });
 });
 
 app.get('/voting/films/list', eAdmin, async (req, res) => {
-  const data = req.body;
+  const { voting_id } = req.query;
 
   await VotingFilm.findAll({
     attributes: ['id', 'film_code', 'voting_id', 'votes'],
     order: [['id', "DESC"]],
     where: {
-      voting_id: data.voting_id
+      voting_id: voting_id
     }
   })
   .then((films) => {
@@ -178,13 +228,13 @@ app.get('/voting/films/list', eAdmin, async (req, res) => {
     } else {
       return res.status(400).json({
         error: true,
-        message: "error: no match"
+        message: "Erro: Lista não encontrada"
       });
     }
   }).catch(() => {
     return res.status(400).json({
       error: true,
-      message: "error: access denied"
+      message: "Erro: Erro desconhecido"
     });
   });
 });
@@ -203,13 +253,13 @@ app.get('/voting/list', eAdmin, async (req, res) => {
     } else {
       return res.status(400).json({
         error: true,
-        message: "error: no votings registered"
+        message: "Erro: Sem votos registrados"
       });
     }
   }).catch(() => {
     return res.status(400).json({
       error: true,
-      message: "error: access denied"
+      message: "Erro: Erro desconhecido"
     });
   });
 });
@@ -223,7 +273,7 @@ app.get('/voting/last', eAdmin, async (req, res) => {
   if (voting === null) {
     return res.status(400).json({
       error: true,
-      message: "error: no voting found"
+      message: "Erro: Nenhuma votação encontrada"
     });
   }
 
@@ -239,7 +289,7 @@ app.post('/register', async (req, res) => {
   if (!data.name || !data.email || !data.matricula || !data.password) {
     return res.status(400).json({
       error: true,
-      message: 'error: incomplete request'
+      message: 'Erro: Requisição incompleta'
     });
   }
 
@@ -249,12 +299,12 @@ app.post('/register', async (req, res) => {
     await User.create(data);
     return res.json({
       error: false,
-      message: 'user successfully registered'
+      message: 'Usuário cadastrado com sucesso!'
     });
   } catch (error) {
     return res.status(400).json({
       error: true,
-      message: 'error: user already exists'
+      message: 'Erro: Usuário já existe'
     });
   }
 });
@@ -270,14 +320,14 @@ app.post('/login', async (req, res) => {
   if(user === null){
     return res.status(400).json({
       error: true,
-      message: "error: invalid user or password"
+      message: "Erro: Usuário ou senha inválidos"
     });
   }
 
   if(!(await bcrypt.compare(req.body.password, user.password))){
     return res.status(400).json({
       error: true,
-      message: "error: inavlid user or password"
+      message: "Erro: Usuário ou senha inválidos"
     });
   }
 
@@ -287,7 +337,7 @@ app.post('/login', async (req, res) => {
 
   return res.json({
     error: false,
-    message: 'user successfully logged',
+    message: 'Usuário logado com sucesso',
     authData: {
       userId: user.id,
       token,
