@@ -1,4 +1,4 @@
-# Click Project
+# Click Project API
 
 Click is a project developed and improved during the Software Engineering course at UFC - Quixadá campus. The system proposes a vote for films to be shown in a school cinema or social project. The purpose of the project is to exercise project development and organization skills.
 
