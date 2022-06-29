@@ -29,7 +29,7 @@ It also uses a connection with a Postgres DB, so you will need it. See the .env-
 
 ## Version
 
-See the [tags in this repository](https://github.com/oliveiraD4vi/click-project/tags).
+See the [tags in this repository](https://github.com/oliveiraD4vi/click-project-back/tags).
 
 ## License
 
