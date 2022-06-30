@@ -22,7 +22,7 @@ It also uses a connection with a Postgres DB, so you will need it. See the .env-
 
 ## Build with
 
-* [NodeJs](https://pt-br.reactjs.org/) - The framework used
+* [NodeJs](https://pt-br.reactjs.org/) - The runtime environment used
 * [Postgres](https://www.postgresql.org/) - The DB used
 * [JWT](jwt.io) - The method for representing claims securely between two parties
 * [Sequelize](https://sequelize.org/) - The DB ORM used
