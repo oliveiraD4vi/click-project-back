@@ -7,7 +7,7 @@ Click is a project developed and improved during the Software Engineering course
 After clonning the repository, run
 
 ```
-npm install
+npm i
 ```
 in order to install the right dependencies needed. Then run
 

@@ -4,7 +4,7 @@ const db = require('../db');
 const Voting = require('./Voting');
 const User = require('./User');
 
-const UserVoting = db.define('uservoting', {
+const VotingUser = db.define('uservoting', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
@@ -32,4 +32,4 @@ const UserVoting = db.define('uservoting', {
 // Create table
 // UserVoting.sync();
 
-module.exports = UserVoting;
+module.exports = VotingUser;
