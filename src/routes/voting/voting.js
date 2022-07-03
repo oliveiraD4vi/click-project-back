@@ -70,6 +70,7 @@ module.exports = (app) => {
     }
 
     let winner = null;
+    let votesPercent = 0;
 
     await VotingFilm.findAll({
       attributes: ['id', 'film_code', 'voting_id', 'votes'],
@@ -80,11 +81,15 @@ module.exports = (app) => {
     })
     .then((films) => {
       winner = films[0];
+      let totalVotes = 0;
       
       films.forEach((film) => {
+        totalVotes += parseInt(film.votes);
         if (film.votes > winner.votes)
           winner = film;
       });
+
+      votesPercent = parseFloat(100*parseInt(winner.votes)/totalVotes);
     }).catch(() => {
       return res.status(400).json({
         error: true,
@@ -95,6 +100,7 @@ module.exports = (app) => {
     if (cancel) voting.cancelled = cancel;
     voting.current = false;
     voting.result = winner.film_code;
+    voting.percent = votesPercent;
 
     await voting.save()
     .then(() => {
@@ -123,7 +129,7 @@ module.exports = (app) => {
     }
 
     const user = await VotingUser.findOne({
-      attributes: ['id', 'user_id', 'voting_id', 'voted'],
+      attributes: ['id', 'user_id', 'voting_id'],
       where: {
         user_id: userId,
         voting_id: voting.id

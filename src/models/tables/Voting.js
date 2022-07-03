@@ -21,6 +21,10 @@ const Voting = db.define('voting', {
   result: {
     type: DataTypes.STRING,
     allowNull: true
+  },
+  percent: {
+    type: DataTypes.STRING,
+    allowNull: true
   }
 });
 

@@ -30,6 +30,6 @@ const VotingUser = db.define('uservoting', {
 });
 
 // Create table
-// UserVoting.sync();
+// VotingUser.sync({ alter: true });
 
 module.exports = VotingUser;
