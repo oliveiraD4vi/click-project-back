@@ -84,7 +84,7 @@ module.exports = (app) => {
       let totalVotes = 0;
       
       films.forEach((film) => {
-        totalVotes += parseInt(film.votes);
+        totalVotes += parseFloat(film.votes);
         if (film.votes > winner.votes)
           winner = film;
       });
@@ -234,7 +234,7 @@ module.exports = (app) => {
 
   app.get('/voting/list', async (req, res) => {
     await Voting.findAll({
-      attributes: ['id', 'current', 'cancelled', 'result'],
+      attributes: ['id', 'current', 'cancelled', 'result', 'percent', 'createdAt', 'updatedAt'],
       order: [['id', "DESC"]]
     })
     .then((votings) => {
@@ -257,16 +257,20 @@ module.exports = (app) => {
     });
   });
 
-  app.get('/voting/last', async (req, res) => {
+  app.get('/voting', async (req, res) => {
+    const { id } = req.query;
+
     const voting = await Voting.findOne({
-      attributes: ['id', 'current', 'cancelled', 'result', 'createdAt', 'updatedAt'],
-      order: [['id', "DESC"]]
+      attributes: ['id', 'current', 'cancelled', 'result', 'percent', 'createdAt', 'updatedAt'],
+      where: {
+        id
+      }
     });
     
     if (voting === null) {
       return res.status(400).json({
         error: true,
-        message: "Erro: Nenhuma votação encontrada"
+        message: "Erro: Votação não encontrada"
       });
     }
 
