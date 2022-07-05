@@ -25,6 +25,11 @@ const User = db.define('users', {
   password: {
     type: DataTypes.STRING,
     allowNull: false
+  },
+  role: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: 'ALUNO'
   }
 });
 
