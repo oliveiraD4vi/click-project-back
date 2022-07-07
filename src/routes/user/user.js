@@ -64,7 +64,7 @@ module.exports = (app) => {
 
   app.post('/login', async (req, res) => {
     const user = await User.findOne({
-      attributes: ['id', 'name', 'email', 'matricula', 'password'],
+      attributes: ['id', 'name', 'email', 'matricula', 'password', 'role'],
       where: {
         matricula: req.body.matricula
       }
