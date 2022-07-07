@@ -12,7 +12,7 @@ npm i
 in order to install the right dependencies needed. Then run
 
 ```
-node app.js
+node server.js
 ```
 to see the server running locally.
 
