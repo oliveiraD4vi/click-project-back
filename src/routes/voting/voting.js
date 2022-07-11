@@ -52,7 +52,7 @@ module.exports = (app) => {
     }
   });
 
-  app.put('/voting/end', eAdmin, async (req, res) => {
+  app.put('/voting/end', async (req, res) => {
     const { cancel } = req.query;
 
     const voting = await Voting.findOne({
