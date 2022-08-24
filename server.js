@@ -9,4 +9,4 @@ require('dotenv/config');
 require('./src/models/db');
 require('./src/routes/index')(app);
 
-app.listen(3333);
+app.listen(process.env.PORT);
